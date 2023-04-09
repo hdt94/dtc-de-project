@@ -1,0 +1,16 @@
+version: 2
+sources:
+  - name: staging
+    database: "{{ env_var('DBT_DATABASE') }}"
+    schema: "{{ env_var('DBT_SCHEMA') }}"
+    tables:
+      - name: stg_fhv_trips_raw_external
+        external:
+          location: "{{ env_var('GS_FHV_RAW_URI') }}"
+          options:
+            format: parquet
+      - name: stg_green_trips_raw_external
+        external:
+          location: "{{ env_var('GS_GREEN_RAW_URI') }}"
+          options:
+            format: parquet

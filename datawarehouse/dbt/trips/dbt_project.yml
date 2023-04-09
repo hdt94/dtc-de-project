@@ -1,0 +1,31 @@
+# basics
+name: "trips"
+version: "1.0.0"
+config-version: 2
+profile: "default"
+
+# paths
+analysis-paths: ["analyses"]
+model-paths: ["models"]
+macro-paths: ["macros"]
+seed-paths: ["seeds"]
+snapshot-paths: ["snapshots"]
+test-paths: ["tests"]
+
+target-path: "target"
+clean-targets:
+  - "dbt_packages"
+  - "target"
+
+models:
+  trips:
+    core: # models/core/
+      materialized: table
+    staging: # models/staging/
+      materialized: view
+
+seeds:
+  trips:
+    taxi_zone_lookup:
+      +column_types:
+        locationid: numeric

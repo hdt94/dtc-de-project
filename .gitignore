@@ -1,0 +1,14 @@
+.vscode/
+
+.env
+
+__pycache__/
+build/
+dist/
+venv*/
+*.egg-info/
+.ipynb_checkpoints/
+
+.terraform/
+*.tfstate
+*.tfstate.*

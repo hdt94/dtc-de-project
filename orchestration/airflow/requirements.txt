@@ -1,0 +1,2 @@
+apache-airflow[virtualenv]==2.4.3
+sqlalchemy<2
