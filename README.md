@@ -12,7 +12,7 @@ Guiding references:
 # Setup (reproducibility)
 Setup for development is a hybrid configuration:
 - Cloud environment for Cloud Storage and BigQuery.
-- Local environment for Airflow and dbt.
+- Local environment for Airflow (optional) and dbt.
 
 Setup requirements: GCP project, gcloud, jq, terraform, and Python. Using [Cloud Shell](https://console.cloud.google.com/welcome?cloudshell=true) is recommended as it complies with all these requirements.
 
@@ -28,7 +28,7 @@ git clone https://github.com/hdt94/dtc-de-project && cd dtc-de-project
 
 Update scripts execution mode:
 ```bash
-chmod +x ./*.sh ./datawarehouse/dbt/trips/*.sh
+chmod +x ./*.sh ./infrastructure/gcp/scripts/*.sh ./datawarehouse/dbt/trips/*.sh
 ```
 
 Base environment variables:
@@ -44,11 +44,15 @@ export GCP_PROJECT_ID=
 export BQ_DATASET=trips
 export GCP_DBT_CREDENTIALS_FILE="$PWD/secrets/gcp_dbt_sa_credentials.json"
 export GCS_DATA_BUCKET_NAME="datalake-$GCP_PROJECT_ID"
+
+# enforcing local airflow, not provisioning Cloud Composer environment
+export LOCAL_AIRFLOW=true
 ```
 
 Initialize cloud resources using Terraform:
 ```bash
-./init-cloud-env.sh
+gcloud config set project $GCP_PROJECT_ID
+RUN_ALL=true ./init-cloud-env.sh
 ```
 
 Generate environment variables file:
@@ -63,10 +67,10 @@ Create local virtual environments:
   - Use a `conda` env: `BASE_CONDA_ENV=`
 ```bash
 # Alternative 1: python distribution (change as needed)
-BASE_PYTHON=python3.8 LOCAL_AIRFLOW=true LOCAL_DBT=true ./init-local-env.sh
+BASE_PYTHON=python3.8 LOCAL_DBT=true ./init-local-env.sh
 
 # Alternative 2: conda env (change as needed)
-BASE_CONDA_ENV=base LOCAL_AIRFLOW=true LOCAL_DBT=true ./init-local-env.sh
+BASE_CONDA_ENV=base LOCAL_DBT=true ./init-local-env.sh
 ```
 
 Local Airflow:
