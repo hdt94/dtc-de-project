@@ -23,7 +23,7 @@ async def download_single_file(session, url, dest):
         data = await res.read()
 
     file_basename = os.path.basename(url)
-    async with aiofiles.open(f"{dest}/{file_basename}", 'wb') as f:
+    async with aiofiles.open(f"{dest}/{file_basename}", "wb") as f:
         await f.write(data)
 
     return file_basename
@@ -41,7 +41,7 @@ async def ingest_single_file(session, url, bucket, subpath):
     async with session.get(url) as res:
         data = await res.read()
 
-    async with aiofiles.tempfile.NamedTemporaryFile('wb') as local_file:
+    async with aiofiles.tempfile.NamedTemporaryFile("wb") as local_file:
         await local_file.write(data)
 
         file_basename = os.path.basename(url)
@@ -68,6 +68,7 @@ def main(
     local_dest=None,
     vehicle_type="green",
     year=None,
+    month=None
 ):
     """
     Ingest files to Cloud Storage bucket path "BUCKET_NAME/raw/vehicle_type/":
@@ -82,19 +83,26 @@ def main(
     """
 
     curr = dt.datetime.now()
+    month_published = curr.month - 2  # data publication has two months delay
 
     if year is None:
         year = curr.year
-        months = [curr.month - 1]
+        months = [month_published]
     else:
-        assert type(year) is int, ""
-        assert year <= curr.year, ""
+        assert type(year) is int, "year must be int"
 
-        months = range(1, 13 if (year < curr.year) else curr.month)
+        if month is None:
+            months = range(
+                1,
+                13 if (year < curr.year) else month_published + 1
+            )
+        else:
+            assert type(month) is int, "month must be int"
+            months = [month]
 
     urls = [
-        f"{BASE_URL}/{vehicle_type}_tripdata_{year}-{month:02}.parquet"
-        for month in months
+        f"{BASE_URL}/{vehicle_type}_tripdata_{year}-{m:02}.parquet"
+        for m in months
     ]
 
     subpath = f"raw/{vehicle_type}"
