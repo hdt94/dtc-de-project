@@ -3,6 +3,8 @@
 Contents:
 - [Setup (reproducibility)](#setup-reproducibility)
 
+Datasets: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
+
 Guiding references:
 - https://github.com/DataTalksClub/data-engineering-zoomcamp/tree/main/week_7_project
 - https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/cohorts/2023/project.md
@@ -12,11 +14,16 @@ Setup for development is a hybrid configuration:
 - Cloud environment for Cloud Storage and BigQuery.
 - Local environment for Airflow and dbt.
 
-Setup requirements: GCP project, gcloud, Terraform, and Python. Using [Cloud Shell](https://console.cloud.google.com/welcome?cloudshell=true) is recommended as it complies with all these requirements.
+Setup requirements: GCP project, gcloud, jq, terraform, and Python. Using [Cloud Shell](https://console.cloud.google.com/welcome?cloudshell=true) is recommended as it complies with all these requirements.
 
-Log in using gcloud (even if using Cloud Shell):
+Log in with gcloud if using other than Cloud Shell:
 ```bash
 gcloud auth application-default login
+```
+
+Clone repo:
+```bash
+git clone https://github.com/hdt94/dtc-de-project && cd dtc-de-project
 ```
 
 Update scripts execution mode:
@@ -25,6 +32,7 @@ chmod +x ./*.sh ./datawarehouse/dbt/trips/*.sh
 ```
 
 Base environment variables:
+- `secrets/` directory is part of [.gitignore](./.gitignore)
 ```bash
 # if using Cloud Shell
 export GCP_PROJECT_ID=$DEVSHELL_PROJECT_ID
@@ -34,6 +42,7 @@ export GCP_PROJECT_ID=
 
 # customizable variables
 export BQ_DATASET=trips
+export GCP_DBT_CREDENTIALS_FILE="$PWD/secrets/gcp_dbt_sa_credentials.json"
 export GCS_DATA_BUCKET_NAME="datalake-$GCP_PROJECT_ID"
 ```
 
@@ -70,9 +79,10 @@ airflow standalone
 ```
 
 Local dbt:
-```bash
-set -a; source .env; set +a;
-source venvs/venv-dbt/bin/activate
-cd datawarehouse/dbt/trips
-```
-Follow instructions [datawarehouse/dbt/trips/README.md](./datawarehouse/dbt/trips/README.md)
+- Enable environment:
+  ```bash
+  set -a; source .env; set +a;
+  source venvs/venv-dbt/bin/activate
+  cd datawarehouse/dbt/trips
+  ```
+- Follow instructions [datawarehouse/dbt/trips/README.md](./datawarehouse/dbt/trips/README.md)

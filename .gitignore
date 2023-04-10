@@ -1,6 +1,7 @@
 .vscode/
 
 .env
+secrets/
 
 __pycache__/
 build/

@@ -12,8 +12,8 @@ default:
   outputs:
     dev:
       type: bigquery
-      method: oauth
+      method: service-account
       dataset: "{{ env_var('BQ_DATASET') }}"
       project: "{{ env_var('GCP_PROJECT_ID') }}"
-      keyfile: "{{ env_var('GCP_APPLICATION_CREDENTIALS_FILE') }}"
+      keyfile: "{{ env_var('GCP_DBT_CREDENTIALS_FILE') }}"
 EOF
