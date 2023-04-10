@@ -16,6 +16,7 @@ from google.cloud import storage
 
 
 BASE_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data"
+WEB_URL = "https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page"
 
 
 async def download_single_file(session, url, dest):
@@ -63,12 +64,33 @@ async def ingest_files(urls, bucket_name, subpath):
     print(f"Ingested to {bucket_name}: {uris}")
 
 
+async def validate_urls(urls):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(WEB_URL) as res:
+            data = await res.read()
+
+    html = data.decode("utf-8")
+    exp = re.compile(re.escape(BASE_URL) + r".*\.parquet")
+    available_urls = set(exp.findall(html))
+
+    valid_urls = []
+    invalid_urls = []
+    for url in urls:
+        if url in available_urls:
+            valid_urls.append(url)
+        else:
+            invalid_urls.append(url)
+
+    return (valid_urls, invalid_urls)
+
+
 def main(
     bucket_name=None,
     local_dest=None,
     vehicle_type="green",
     year=None,
-    month=None
+    month=None,
+    raise_if_any_not_found=True,
 ):
     """
     Ingest files to Cloud Storage bucket path "BUCKET_NAME/raw/vehicle_type/":
@@ -104,6 +126,13 @@ def main(
         f"{BASE_URL}/{vehicle_type}_tripdata_{year}-{m:02}.parquet"
         for m in months
     ]
+    (urls, invalid_urls) = asyncio.run(validate_urls(urls))
+    if len(invalid_urls) > 0:
+        message = f"Invalid URLs: {invalid_urls}"
+        if raise_if_any_not_found:
+            raise ValueError(message)
+        else:
+            print(message)
 
     subpath = f"raw/{vehicle_type}"
     if bucket_name:
@@ -118,7 +147,7 @@ def main(
 if (__name__ == "__main__") and __debug__:
     main(
         vehicle_type="green",
-        year=2022,
+        year=2023,
         bucket_name="data-dtc-dataeng-375600",
         local_dest="/home/vagrant/courses/dtc-de-project/tmp",
     )
