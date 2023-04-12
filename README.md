@@ -10,11 +10,11 @@ Guiding references:
 - https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/cohorts/2023/project.md
 
 # Setup (reproducibility)
-Setup for development is a hybrid configuration:
-- Cloud environment for Cloud Storage and BigQuery.
-- Local environment for Airflow (optional) and dbt.
+Setup may have two deployment options:
+- Fully on cloud with Google Cloud and dbt Cloud.
+- Hybrid optionally using local Airflow and/or local dbt core.
 
-Setup requirements: GCP project, gcloud, jq, terraform, and Python. Using [Cloud Shell](https://console.cloud.google.com/welcome?cloudshell=true) is recommended as it complies with all these requirements.
+Setup requirements: GCP project, gcloud, git, jq, terraform, and Python. Using [Cloud Shell](https://console.cloud.google.com/welcome?cloudshell=true) is recommended as it complies with all these requirements.
 
 Log in with gcloud if using other than Cloud Shell:
 ```bash
@@ -50,6 +50,7 @@ export LOCAL_AIRFLOW=true
 ```
 
 Initialize cloud resources using Terraform:
+- script will generate a dbt BigQuery connection service account JSON file at `GCP_DBT_CREDENTIALS_FILE` location (see base variables)
 ```bash
 gcloud config set project $GCP_PROJECT_ID
 RUN_ALL=true ./init-cloud-env.sh
@@ -61,16 +62,35 @@ Generate environment variables file:
 ./init-env-file.sh
 ```
 
+## Cloud
+
+Cloud dbt:
+- Fork repository to your GitHub account: https://github.com/hdt94/dtc-de-project/fork
+- Create a dbt project: https://cloud.getdbt.com/
+- Setup dbt project subdirectory to: `datawarehouse/dbt/trips`
+- Setup BigQuery connection using the service account JSON file previously generated at `GCP_DBT_CREDENTIALS_FILE` location (see base variables): https://docs.getdbt.com/docs/quickstarts/dbt-cloud/bigquery#connect-dbt-cloud-to-bigquery
+- Setup repository using Git Clone option: git@github.com:YOUR_GITHUB_USERNAME/dtc-de-project.git
+- Add dbt deploy key to your repository: https://docs.getdbt.com/docs/cloud/git/import-a-project-by-git-url#github
+- Follow instructions [datawarehouse/dbt/trips/README.md](./datawarehouse/dbt/trips/README.md)
+
+## Local
+
+Define variables to build environments:
+```bash
+export LOCAL_AIRFLOW=true
+export LOCAL_DBT=true
+```
+
 Create local virtual environments:
 - if `sqlite3` system library is too old "sqlite C library version too old (< 3.15.0)":
   - Download and update `sqlite3` binary: https://www.sqlite.org/download.html
   - Use a `conda` env: `BASE_CONDA_ENV=`
 ```bash
 # Alternative 1: python distribution (change as needed)
-BASE_PYTHON=python3.8 LOCAL_DBT=true ./init-local-env.sh
+BASE_PYTHON=python3.8 ./init-local-env.sh
 
 # Alternative 2: conda env (change as needed)
-BASE_CONDA_ENV=base LOCAL_DBT=true ./init-local-env.sh
+BASE_CONDA_ENV=base ./init-local-env.sh
 ```
 
 Local Airflow:

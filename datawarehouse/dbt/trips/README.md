@@ -1,5 +1,6 @@
 # Up and running
-- Local environment is created using root init script [init-local-env.sh](/init-local-env.sh), read [root README](/README.md)
+
+Create environment either on cloud or local following instructions from [root README](/README.md).
 
 Install dbt packages:
 ```bash
@@ -11,7 +12,7 @@ Environment variables:
 ```bash
 export BQ_DATASET=
 export GCP_PROJECT_ID=
-export GCP_APPLICATION_CREDENTIALS_FILE=
+export GCP_DBT_CREDENTIALS_FILE=
 export GCS_DATA_BUCKET_NAME=
 
 export DBT_DATABASE=$GCP_PROJECT_ID
@@ -39,6 +40,13 @@ dbt build
 
 # build models with all available data
 dbt build --var 'is_test_run: false'
+
+# build models with view materialization toggling `is_test_run` var
+dbt run -m stg_fhv_trips
+dbt run -m stg_fhv_trips --var 'is_test_run: false'
+
+# build staging/stg_green_trips.sql downstream with all available data
+dbt build -s staging.stg_green_trips+ --var 'is_test_run: false'
 ```
 
 # References
