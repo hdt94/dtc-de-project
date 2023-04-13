@@ -14,7 +14,10 @@ Setup may have two deployment options:
 - Fully on cloud with Google Cloud and dbt Cloud.
 - Hybrid optionally using local Airflow and/or local dbt core.
 
-Setup requirements: GCP project, gcloud, git, jq, terraform, and Python. Using [Cloud Shell](https://console.cloud.google.com/welcome?cloudshell=true) is recommended as it complies with all these requirements.
+Setup requirements:
+- GCP project, gcloud, git, jq, and terraform. Using [Cloud Shell](https://console.cloud.google.com/welcome?cloudshell=true) is recommended as it complies with all these requirements.
+- Local Airflow and/or local dbt require a Python distribution.
+- Local Airflow setup additionally requires docker.
 
 Log in with gcloud if using other than Cloud Shell:
 ```bash

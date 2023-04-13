@@ -38,7 +38,7 @@ if [[ $APPLY_TERRAFORM = true ]]; then
         -var "bq_dataset=$BQ_DATASET"\
         -var "composer=$CLOUD_COMPOSER"\
         -var "gcs_datalake_bucket_name=$GCS_DATA_BUCKET_NAME"\
-        -var "project=$GCP_PROJECT_ID"
+        -var "project_id=$GCP_PROJECT_ID"
 fi
 
 TERRAFORM_OUTPUT=$(terraform -chdir=$TERRAFORM_DIR output -json)
@@ -57,6 +57,21 @@ if [[ $UPDATE_DBT_CREDENTIALS_FILE = true ]]; then
     mkdir -p "$(dirname $GCP_DBT_CREDENTIALS_FILE)"
     gcloud iam service-accounts keys create "$GCP_DBT_CREDENTIALS_FILE" --iam-account="$GCP_SA_DBT"
     echo "dbt credentials file for BigQuery: ${GCP_DBT_CREDENTIALS_FILE}"
+fi
+
+if [[ $BUILD_DOCKER_OPERATORS = true ]]; then
+    chmod +x $REPO_ROOT/dtc_de/build-composer-docker-operators.sh
+    if [[ $LOCAL_AIRFLOW = true ]]; then
+        echo "Building Airflow Docker Operators locally..."
+        LOCAL=true $REPO_ROOT/dtc_de/build-docker-extras.sh
+    else
+        echo "Building Composer Docker Operators using Cloud Build..."
+        REGISTRY_URL=$(
+            jq -r .composer.value.docker_operators_registry_url <<< "$TERRAFORM_OUTPUT"
+        )
+        REGISTRY_URL=$REGISTRY_URL \
+        $REPO_ROOT/dtc_de/build-docker-extras.sh
+    fi
 fi
 
 if [[ $UPLOAD_COMPOSER_DAGS = true ]]; then

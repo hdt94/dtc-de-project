@@ -1,0 +1,23 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker build \
+          -t ${_REF_1} \
+          -t ${_REF_2} \
+          -t ${_REF_3} \
+          --build-arg EXTRA=${_MODULE_EXTRA} \
+          .
+
+images: ["${_REF_1}", "${_REF_2}"]
+substitutions:
+  _IMAGE: ""
+  _IMAGE_VERSION: ${BUILD_ID}
+  _MODULE_EXTRA: ""
+  _REF_1: ${_IMAGE}:${BUILD_ID}
+  _REF_2: ${_IMAGE}:${_IMAGE_VERSION}
+  _REF_3: ${_IMAGE}:latest
+options:
+  dynamic_substitutions: true

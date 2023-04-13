@@ -1,5 +1,5 @@
-variable "agent_service_account_id" {
-  type = string
+variable "agent_service_account" {
+  type = map(string)
 }
 
 variable "data_bucket_name" {
@@ -13,6 +13,10 @@ variable "env_variables" {
 }
 
 variable "name" {
+  type = string
+}
+
+variable "project_id" {
   type = string
 }
 

@@ -19,8 +19,6 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.models.param import Param
 
-from dtc_de.utils.requirements import read_module_requirements
-
 
 VEHICLE_TYPES = [
     "fhv",
@@ -30,14 +28,10 @@ VEHICLE_TYPES = [
 ]
 
 
-@task.virtualenv(
+@task.docker(
     task_id="extract_load_trips_from_tlc_to_gs",
-    requirements=read_module_requirements(
-        "dtc_de.extract_load",
-        "extract_load_trips_from_tlc_to_gs.requirements.txt",
-    ),
+    image="{{ var.value.docker_image_extract_load_trips_from_tlc_to_gs }}",
     retry_delay=dt.timedelta(weeks=1),
-    system_site_packages=False,
 )
 def extract_load(bucket_name, vehicle_type, year, data_interval_end=None):
     """

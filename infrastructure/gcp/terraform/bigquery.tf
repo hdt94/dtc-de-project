@@ -3,7 +3,7 @@ resource "google_bigquery_dataset" "dataset" {
 }
 
 resource "google_project_iam_member" "bigquery_job_user" {
-  project = var.project
+  project = var.project_id
   role    = "roles/bigquery.jobUser"
   member  = google_service_account.dbt_sa.member
 }

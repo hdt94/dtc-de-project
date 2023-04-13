@@ -12,7 +12,7 @@ variable "gcs_datalake_bucket_name" {
   type    = string
 }
 
-variable "project" {
+variable "project_id" {
   description = "GCP Project ID"
   type        = string
 }
