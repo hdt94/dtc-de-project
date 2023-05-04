@@ -1,6 +1,9 @@
 # Project for Data Engineering course from DataTalksClub
 
+Data engineering project for TLC taxi Parquet data following an ELT model (extraction, load, transform) and using several technologies used during the [Data Engineering course from DataTalksClub](https://github.com/DataTalksClub/data-engineering-zoomcamp/). Personal course notes and work area available at: [https://github.com/hdt94/dtc-de-course](https://github.com/hdt94/dtc-de-course)
+
 Contents:
+- [Description](#description)
 - [Setup (reproducibility)](#setup-reproducibility)
 
 Datasets: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
@@ -8,6 +11,22 @@ Datasets: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
 Guiding references:
 - https://github.com/DataTalksClub/data-engineering-zoomcamp/tree/main/week_7_project
 - https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/cohorts/2023/project.md
+
+# Description
+
+Public information provided by the New York city Taxi & Limousine Commission - TLC regarding taxi trips allows extracting insights about rates, demand, and mobility. The purpose of doing analytics on this data is to present most valuable descriptors of such dimensions.
+
+Analytics dashboard is available at: https://lookerstudio.google.com/reporting/cf68a74a-c790-4b9b-98d0-d900966ebd6c
+
+The system design follows an ELT model:
+- Extraction/ingestion as batch process from web source: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
+- Load into datalake and datawarehouse as external tables.
+- Transform data within datawarehouse using semantic layer.
+
+The system is implemented using Google Cloud, dbt, and Looker; the provisioning is made through Terraform; and the data pipeline has been developed for execution in a scheduled basis as well as ad-hoc basis, allowing custom parameterization for extracting/ingesting multiple years and vehicle types through Airflow/Composer manual DAG Run with config.
+
+System design high-level diagram:
+![project diagram](./diagram.png)
 
 # Setup (reproducibility)
 Setup may have two deployment options:
@@ -98,12 +117,13 @@ BASE_CONDA_ENV=base ./init-local-env.sh
 
 Local Airflow:
 - WARNING: standalone mode is for development only, do not use it in production.
-- Default data bucket set as Airflow variable through `AIRFLOW_VAR_DATA_BUCKET_NAME` environment variable cannot be modified as Airflow variables defined as environment variables are not visible from Airflow UI. Read https://airflow.apache.org/docs/apache-airflow/stable/howto/variable.html#storing-variables-in-environment-variables
-```bash
-set -a; source .env; set +a;
-source venvs/venv-airflow/bin/activate
-airflow standalone
-```
+- Enable environment:
+  ```bash
+  set -a; source .env; set +a;
+  source venvs/venv-airflow/bin/activate
+  airflow standalone
+  ```
+- Follow instructions  [orchestration/airflow/README.md](./orchestration/airflow/README.md)
 
 Local dbt:
 - Enable environment:
