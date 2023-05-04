@@ -14,3 +14,8 @@ sources:
           location: "{{ env_var('GS_GREEN_RAW_URI') }}"
           options:
             format: parquet
+      - name: stg_yellow_trips_raw_external
+        external:
+          location: "{{ env_var('GS_YELLOW_RAW_URI') }}"
+          options:
+            format: parquet
