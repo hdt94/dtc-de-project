@@ -60,7 +60,7 @@ if [[ $UPDATE_DBT_CREDENTIALS_FILE = true ]]; then
 fi
 
 if [[ $BUILD_DOCKER_OPERATORS = true ]]; then
-    chmod +x $REPO_ROOT/dtc_de/build-composer-docker-operators.sh
+    chmod +x $REPO_ROOT/dtc_de/build-docker-extras.sh
     if [[ $LOCAL_AIRFLOW = true ]]; then
         echo "Building Airflow Docker Operators locally..."
         LOCAL=true $REPO_ROOT/dtc_de/build-docker-extras.sh
