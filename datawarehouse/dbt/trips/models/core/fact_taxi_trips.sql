@@ -12,12 +12,12 @@ WITH green_trips AS (
         'Green' AS service_type 
     FROM {{ ref('stg_green_trips') }}
 ),
-WITH yellow_trips AS (
+yellow_trips AS (
     SELECT *,
         'Yellow' AS service_type 
     FROM {{ ref('stg_yellow_trips') }}
 ),
-WITH trips AS (
+trips AS (
     SELECT * FROM green_trips
     UNION ALL
     SELECT * FROM yellow_trips

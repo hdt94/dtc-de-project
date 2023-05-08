@@ -38,4 +38,5 @@ DBT_VENV_DIR="${BASE_DIR}/venvs/venv-dbt"
 
 GS_FHV_RAW_URI="gs://$GCS_DATA_BUCKET_NAME/raw/fhv/*.parquet"
 GS_GREEN_RAW_URI="gs://$GCS_DATA_BUCKET_NAME/raw/green/*.parquet"
+GS_YELLOW_RAW_URI="gs://$GCS_DATA_BUCKET_NAME/raw/yellow/*.parquet"
 EOF

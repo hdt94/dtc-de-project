@@ -20,6 +20,7 @@ export DBT_SCHEMA=$BQ_DATASET
 
 export GS_FHV_RAW_URI="gs://$GCS_DATA_BUCKET_NAME/raw/fhv/*.parquet"
 export GS_GREEN_RAW_URI="gs://$GCS_DATA_BUCKET_NAME/raw/green/*.parquet"
+export GS_YELLOW_RAW_URI="gs://$GCS_DATA_BUCKET_NAME/raw/yellow/*.parquet"
 ```
 
 Create source raw external tables:
@@ -47,6 +48,9 @@ dbt run -m stg_fhv_trips --var 'is_test_run: false'
 
 # build staging/stg_green_trips.sql downstream with all available data
 dbt build -s staging.stg_green_trips+ --var 'is_test_run: false'
+
+# build taxi tables downstream with all available data
+dbt build -s staging.stg_green_trips+ -s staging.stg_yellow_trips+ --var 'is_test_run: false'
 ```
 
 # References
