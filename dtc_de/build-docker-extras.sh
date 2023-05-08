@@ -23,16 +23,29 @@ fi
 
 IMAGE_VERSION=$(date +%F_%H-%M-%S)
 if [[ "$LOCAL" = true ]]; then
+    if [[ -z "$GOOGLE_APPLICATION_CREDENTIALS" ]]; then
+        ADDITIONAL_OPTIONS=()
+    else
+        CREDENTIALS_FILE="secrets/credentials"
+        mkdir -p "$(dirname $BASE_DIR/$CREDENTIALS_FILE)"
+        cp "$GOOGLE_APPLICATION_CREDENTIALS" "$BASE_DIR/$CREDENTIALS_FILE"
+        ADDITIONAL_OPTIONS=(
+            --build-arg "GOOGLE_APPLICATION_CREDENTIALS=$CREDENTIALS_FILE"
+            -f "$BASE_DIR/Dockerfile.google_app_credentials"
+        )
+    fi
+
     for EXTRA_NAME in $EXTRAS_NAMES; do
         IMAGE_REF_1="${EXTRA_NAME}:${IMAGE_VERSION}"
         IMAGE_REF_2="${EXTRA_NAME}:latest"
 
         echo "Building: $IMAGE_REF_1"
         docker build \
-          -t ${IMAGE_REF_1} \
-          -t ${IMAGE_REF_2} \
-          --build-arg EXTRA=${EXTRA_NAME} \
-          $BASE_DIR
+            -t ${IMAGE_REF_1} \
+            -t ${IMAGE_REF_2} \
+            --build-arg EXTRA=${EXTRA_NAME} \
+            ${ADDITIONAL_OPTIONS[@]} \
+            $BASE_DIR
     done
 elif [[ -z "$REGISTRY_URL" ]]; then
     echo >&2 'Undefined REGISTRY_URL'

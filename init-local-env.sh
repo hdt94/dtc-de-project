@@ -41,6 +41,10 @@ mkdir -p $VENV_DIR
 
 if [[ "$LOCAL_AIRFLOW" = "true" ]]; then
     init_venv "$AIRFLOW_VENV_NAME" "$AIRFLOW_DIR/requirements.txt"
+
+    echo "Building Airflow Docker Operators locally..."
+    chmod +x "$REPO_ROOT/dtc_de/build-composer-docker-operators.sh"
+    LOCAL=true "$REPO_ROOT/dtc_de/build-docker-extras.sh"
 fi
 
 if [[ "$LOCAL_DBT" = "true" ]]; then

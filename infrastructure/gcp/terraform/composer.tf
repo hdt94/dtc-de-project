@@ -18,5 +18,5 @@ module "composer" {
 }
 
 output "composer" {
-  value = module.composer[0].env
+  value = var.composer ? module.composer[0].env : null
 }

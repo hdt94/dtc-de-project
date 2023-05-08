@@ -7,6 +7,11 @@ variable "composer" {
   type    = bool
 }
 
+variable "external_orchestrator" {
+  default = false
+  type    = bool
+}
+
 variable "gcs_datalake_bucket_name" {
   default = "datalake"
   type    = string

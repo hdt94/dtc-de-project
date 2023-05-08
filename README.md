@@ -66,6 +66,7 @@ export GCP_PROJECT_ID=
 export BQ_DATASET=trips
 export GCP_DBT_CREDENTIALS_FILE="$PWD/secrets/gcp_dbt_sa_credentials.json"
 export GCS_DATA_BUCKET_NAME="datalake-$GCP_PROJECT_ID"
+export ORCHESTRATOR_GCP_CREDENTIALS_FILE="$PWD/secrets/orchestrator_gcp_sa_credentials.json"
 
 # enforcing local airflow, not provisioning Cloud Composer environment
 export LOCAL_AIRFLOW=true
