@@ -6,17 +6,66 @@ This is intended to run in a virtual environment
 
 import asyncio
 import datetime as dt
+import io
 import os
 import re
 
 import aiofiles
 import aiohttp
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 from google.cloud import storage
 
 
 BASE_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data"
 WEB_URL = "https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page"
+
+VEHICLE_TYPE_SCHEMA_MAP = {
+    "green": pa.schema([
+        ("VendorID", pa.string()),
+        ("lpep_pickup_datetime", pa.timestamp("s")),
+        ("lpep_dropoff_datetime", pa.timestamp("s")),
+        ("store_and_fwd_flag", pa.string()),
+        ("RatecodeID", pa.int64()),
+        ("PULocationID", pa.int64()),
+        ("DOLocationID", pa.int64()),
+        ("passenger_count", pa.int64()),
+        ("trip_distance", pa.float64()),
+        ("fare_amount", pa.float64()),
+        ("extra", pa.float64()),
+        ("mta_tax", pa.float64()),
+        ("tip_amount", pa.float64()),
+        ("tolls_amount", pa.float64()),
+        ("ehail_fee", pa.float64()),
+        ("improvement_surcharge", pa.float64()),
+        ("total_amount", pa.float64()),
+        ("payment_type", pa.int64()),
+        ("trip_type", pa.int64()),
+        ("congestion_surcharge", pa.float64()),
+    ]),
+    "yellow": pa.schema([
+        ("VendorID", pa.string()),
+        ("tpep_pickup_datetime", pa.timestamp("s")),
+        ("tpep_dropoff_datetime", pa.timestamp("s")),
+        ("passenger_count", pa.int64()),
+        ("trip_distance", pa.float64()),
+        ("RatecodeID", pa.string()),
+        ("store_and_fwd_flag", pa.string()),
+        ("PULocationID", pa.int64()),
+        ("DOLocationID", pa.int64()),
+        ("payment_type", pa.int64()),
+        ("fare_amount", pa.float64()),
+        ("extra", pa.float64()),
+        ("mta_tax", pa.float64()),
+        ("tip_amount", pa.float64()),
+        ("tolls_amount", pa.float64()),
+        ("improvement_surcharge", pa.float64()),
+        ("total_amount", pa.float64()),
+        ("congestion_surcharge", pa.float64()),
+        ("airport_fee", pa.float64()),
+    ])
+}
 
 
 async def download_single_file(session, url, dest):
@@ -38,12 +87,16 @@ async def download_files(urls, dest):
     print(f"Downloaded to {dest}: {files}")
 
 
-async def ingest_single_file(session, url, bucket, subpath):
+async def ingest_single_file(session, url, bucket, subpath, schema=None):
     async with session.get(url) as res:
         data = await res.read()
 
     async with aiofiles.tempfile.NamedTemporaryFile("wb") as local_file:
-        await local_file.write(data)
+        if schema is None:
+            await local_file.write(data)
+        else:
+            table = pq.read_table(io.BytesIO(data)).cast(schema)
+            pq.write_table(table, local_file.name)
 
         file_basename = os.path.basename(url)
         blob = bucket.blob(f"{subpath}/{file_basename}")
@@ -52,11 +105,11 @@ async def ingest_single_file(session, url, bucket, subpath):
     return file_basename
 
 
-async def ingest_files(urls, bucket_name, subpath):
+async def ingest_files(urls, bucket_name, subpath, schema=None):
     bucket = storage.Client().bucket(bucket_name)
     async with aiohttp.ClientSession() as session:
         ingestions = [
-            ingest_single_file(session, url, bucket, subpath)
+            ingest_single_file(session, url, bucket, subpath, schema)
             for url in urls
         ]
         uris = await asyncio.gather(*ingestions, return_exceptions=True)
@@ -134,10 +187,15 @@ def main(
         else:
             print(message)
 
+    if vehicle_type in VEHICLE_TYPE_SCHEMA_MAP:
+        schema = VEHICLE_TYPE_SCHEMA_MAP[vehicle_type]
+    else:
+        schema = None
+
     subpath = f"raw/{vehicle_type}"
     if bucket_name:
         print("Ingesting...")
-        asyncio.run(ingest_files(urls, bucket_name, subpath))
+        asyncio.run(ingest_files(urls, bucket_name, subpath, schema))
 
     if local_dest:
         print("Downloading...")
@@ -150,4 +208,5 @@ if (__name__ == "__main__") and __debug__:
         year=2023,
         bucket_name="data-dtc-dataeng-375600",
         local_dest="/home/vagrant/courses/dtc-de-project/tmp",
+        raise_if_any_not_found=False
     )
