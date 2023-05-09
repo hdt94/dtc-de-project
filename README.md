@@ -48,13 +48,8 @@ Clone repo:
 git clone https://github.com/hdt94/dtc-de-project && cd dtc-de-project
 ```
 
-Update scripts execution mode:
-```bash
-chmod +x ./*.sh ./infrastructure/gcp/scripts/*.sh ./datawarehouse/dbt/trips/*.sh
-```
-
-Base environment variables:
-- `secrets/` directory is part of [.gitignore](./.gitignore)
+Define base environment variables:
+- note that `secrets/` directory is part of [.gitignore](./.gitignore)
 ```bash
 # if using Cloud Shell
 export GCP_PROJECT_ID=$DEVSHELL_PROJECT_ID
@@ -64,22 +59,54 @@ export GCP_PROJECT_ID=
 
 # customizable variables
 export BQ_DATASET=trips
-export GCP_DBT_CREDENTIALS_FILE="$PWD/secrets/gcp_dbt_sa_credentials.json"
-export GCS_DATA_BUCKET_NAME="datalake-$GCP_PROJECT_ID"
 export GCP_REGION=us-central1
-export ORCHESTRATOR_GCP_CREDENTIALS_FILE="$PWD/secrets/orchestrator_gcp_sa_credentials.json"
+export GCS_DATA_BUCKET_NAME="datalake-$GCP_PROJECT_ID"
 
-# enforcing local airflow, not provisioning Cloud Composer environment
-export LOCAL_AIRFLOW=true
+# customizable credential file paths
+export DBT_GCP_CREDENTIALS_FILE="$PWD/secrets/dbt_gcp_sa_credentials.json"
+export ORCHESTRATOR_GCP_CREDENTIALS_FILE="$PWD/secrets/orchestrator_gcp_sa_credentials.json"  # only for LOCAL_AIRFLOW=true
+
+# optional hybrid setup
+export LOCAL_AIRFLOW=true  # create local airflow venv, not provisioning Cloud Composer
+export LOCAL_DBT=true  # create local dbt venv
 ```
 
-Initialize cloud resources using Terraform:
-- script will generate a dbt BigQuery connection service account JSON file at `GCP_DBT_CREDENTIALS_FILE` location (see base variables)
-- script will generate a connection service account JSON file at `ORCHESTRATOR_GCP_CREDENTIALS_FILE` location (see base variables) only if `LOCAL_AIRFLOW=true`
-- script will generate an enviroment file `.env` with all relevant environment variables used in this repo. Any change to previous base environment variables requires re-running following script as these base variables are also written to environment file.
+Options for venvs if using hybrid setup:
+- if `sqlite3` system library is too old "sqlite C library version too old (< 3.15.0)":
+  - Download and update `sqlite3` binary: https://www.sqlite.org/download.html
+  - Use a `conda` env: `BASE_CONDA_ENV=`
+```bash
+# Alternative 1: venv based on python distribution (change as needed)
+export BASE_PYTHON=python3.8
+
+# Alternative 2: venv based on conda env python distribution (change as needed)
+export BASE_CONDA_ENV=base
+```
+
+Initialize environment using single script to:
+- initialize local Python venvs if using hybrid setup
+- provision cloud resources using Terraform with local storage backend
+- generate a dbt BigQuery connection service account JSON file at `DBT_GCP_CREDENTIALS_FILE` location (see base variables)
+- generate a service account JSON file at `ORCHESTRATOR_GCP_CREDENTIALS_FILE` location (see base variables) only if `LOCAL_AIRFLOW=true`
+- build container images either locally or using Cloud Build + Cloud Artifacts
+- upload DAGs to Composer if using cloud orchestrator
+- generate `.env` enviroment file with all relevant environment variables used in this repo
 ```bash
 gcloud config set project $GCP_PROJECT_ID
-RUN_ALL=true ./init-cloud-env.sh
+chmod +x ./init-env.sh
+
+# running all steps
+RUN_ALL=true ./init-env.sh
+
+# running individual steps
+INIT_VENVS=true ./init-env.sh
+APPLY_TERRAFORM=true ./init-env.sh
+UPDATE_DBT_CREDENTIALS_FILE=true ./init-env.sh
+UPDATE_ORCHESTRATOR_CREDENTIALS_FILE=true ./init-env.sh
+BUILD_CONTAINER_IMAGES=true ./init-env.sh
+UPLOAD_COMPOSER_DAGS=true ./init-env.sh
+
+# Note: .env environment variable is updated in all script runs
 ```
 
 ## Cloud
@@ -91,30 +118,12 @@ Cloud dbt:
 - Fork repository to your GitHub account: https://github.com/hdt94/dtc-de-project/fork
 - Create a dbt project: https://cloud.getdbt.com/
 - Setup dbt project subdirectory to: `datawarehouse/dbt/trips`
-- Setup BigQuery connection using the service account JSON file previously generated at `GCP_DBT_CREDENTIALS_FILE` location (see base variables): https://docs.getdbt.com/docs/quickstarts/dbt-cloud/bigquery#connect-dbt-cloud-to-bigquery
+- Setup BigQuery connection using the service account JSON file previously generated at `DBT_GCP_CREDENTIALS_FILE` location (see base variables): https://docs.getdbt.com/docs/quickstarts/dbt-cloud/bigquery#connect-dbt-cloud-to-bigquery
 - Setup repository using Git Clone option: git@github.com:YOUR_GITHUB_USERNAME/dtc-de-project.git
 - Add dbt deploy key to your repository: https://docs.getdbt.com/docs/cloud/git/import-a-project-by-git-url#github
 - Follow instructions [datawarehouse/dbt/trips/README.md](./datawarehouse/dbt/trips/README.md)
 
 ## Local
-
-Define variables to build environments:
-```bash
-export LOCAL_AIRFLOW=true
-export LOCAL_DBT=true
-```
-
-Create local virtual environments:
-- if `sqlite3` system library is too old "sqlite C library version too old (< 3.15.0)":
-  - Download and update `sqlite3` binary: https://www.sqlite.org/download.html
-  - Use a `conda` env: `BASE_CONDA_ENV=`
-```bash
-# Alternative 1: python distribution (change as needed)
-BASE_PYTHON=python3.8 ./init-local-env.sh
-
-# Alternative 2: conda env (change as needed)
-BASE_CONDA_ENV=base ./init-local-env.sh
-```
 
 Local Airflow:
 - WARNING: standalone mode is for development only, do not use it in production.

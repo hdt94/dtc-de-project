@@ -12,8 +12,8 @@ Environment variables:
 ```bash
 export BQ_DATASET=
 export GCP_PROJECT_ID=
-export GCP_DBT_CREDENTIALS_FILE=
 export GCS_DATA_BUCKET_NAME=
+export DBT_GCP_CREDENTIALS_FILE=
 
 export DBT_DATABASE=$GCP_PROJECT_ID
 export DBT_SCHEMA=$BQ_DATASET

@@ -15,5 +15,5 @@ default:
       method: service-account
       dataset: "{{ env_var('BQ_DATASET') }}"
       project: "{{ env_var('GCP_PROJECT_ID') }}"
-      keyfile: "{{ env_var('GCP_DBT_CREDENTIALS_FILE') }}"
+      keyfile: "{{ env_var('DBT_GCP_CREDENTIALS_FILE') }}"
 EOF
