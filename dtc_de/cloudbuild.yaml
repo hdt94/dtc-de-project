@@ -11,7 +11,7 @@ steps:
           --build-arg EXTRA=${_MODULE_EXTRA} \
           .
 
-images: ["${_REF_1}", "${_REF_2}"]
+images: ["${_REF_1}", "${_REF_2}", "${_REF_3}"]
 substitutions:
   _IMAGE: ""
   _IMAGE_VERSION: ${BUILD_ID}
