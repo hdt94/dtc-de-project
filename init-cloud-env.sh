@@ -10,6 +10,10 @@ if [[ -z "$GCP_PROJECT_ID" ]]; then
     >&2 echo 'Undefined GCP_PROJECT_ID'
     exit 1
 fi
+if [[ -z "$GCP_REGION" ]]; then
+    >&2 echo 'Undefined GCP_REGION'
+    exit 1
+fi
 if [[ -z "$BQ_DATASET" ]]; then
     >&2 echo 'Undefined BQ_DATASET'
     exit 1
@@ -48,7 +52,8 @@ if [[ $APPLY_TERRAFORM = true ]]; then
         -var "composer=$CLOUD_COMPOSER"\
         -var "external_orchestrator=$EXTERNAL_ORCHESTRATOR" \
         -var "gcs_datalake_bucket_name=$GCS_DATA_BUCKET_NAME"\
-        -var "project_id=$GCP_PROJECT_ID"
+        -var "project_id=$GCP_PROJECT_ID" \
+        -var "region=${GCP_REGION}"
 fi
 
 TERRAFORM_OUTPUT=$(terraform -chdir=$TERRAFORM_DIR output -json)
@@ -56,6 +61,14 @@ if [[ $TERRAFORM_OUTPUT == "{}" ]]; then
      >&2 echo "Terraform output is unexpectedly empty"
     exit 1
 fi
+
+COMPOSER_OUTPUT="$(jq -c .composer.value <<< "$TERRAFORM_OUTPUT")"
+COMPOSER_ENV_LOCATION="$(jq -r .location <<< "$COMPOSER_OUTPUT")"
+COMPOSER_ENV_NAME="$(jq -r .name <<< "$COMPOSER_OUTPUT")"
+
+GCP_CONTAINER_REGISTRY_URL=$(
+    jq -r .composer.value.docker_operators_registry_url <<< "$TERRAFORM_OUTPUT"
+)
 
 # dbt service account credentials file
 if [[ $UPDATE_DBT_CREDENTIALS_FILE = true ]]; then
@@ -90,23 +103,18 @@ if [[ $BUILD_DOCKER_OPERATORS = true ]]; then
         fi
         LOCAL=true \
         GOOGLE_APPLICATION_CREDENTIALS=$ORCHESTRATOR_GCP_CREDENTIALS_FILE \
-        $REPO_ROOT/dtc_de/build-docker-extras.sh
+        "$REPO_ROOT/dtc_de/build-docker-extras.sh"
     else
         echo "Building Composer Docker Operators using Cloud Build..."
-        REGISTRY_URL=$(
-            jq -r .composer.value.docker_operators_registry_url <<< "$TERRAFORM_OUTPUT"
-        )
-        REGISTRY_URL=$REGISTRY_URL \
-        $REPO_ROOT/dtc_de/build-docker-extras.sh
+        REGISTRY_URL=$GCP_CONTAINER_REGISTRY_URL \
+        "$REPO_ROOT/dtc_de/build-docker-extras.sh"
     fi
 fi
 
 if [[ $UPLOAD_COMPOSER_DAGS = true ]]; then
-    COMPOSER_OUTPUT="$(jq -c .composer.value <<< "$TERRAFORM_OUTPUT")"
-
-    COMPOSER_ENV_LOCATION="$(echo "$COMPOSER_OUTPUT" | jq -r .location)" \
-    COMPOSER_ENV_NAME="$(echo "$COMPOSER_OUTPUT" | jq -r .name)" \
-    REPO_ROOT="$REPO_ROOT" \
-    UPLOAD_COMPOSER_DAGS="$UPLOAD_COMPOSER_DAGS" \
-    ${SCRIPTS_DIR}/update-composer-env.sh
+    chmod +x "${SCRIPTS_DIR}/update-composer-env.sh"
+    COMPOSER_ENV_LOCATION="$COMPOSER_ENV_LOCATION" \
+    COMPOSER_ENV_NAME="$COMPOSER_ENV_NAME" \
+    SOURCE_DAGS_DIR="${REPO_ROOT}/orchestration/airflow/composer/dags/" \
+    "${SCRIPTS_DIR}/update-composer-env.sh"
 fi

@@ -21,3 +21,9 @@ resource "google_project_service" "compute" {
   project            = var.project_id
   service            = "compute.googleapis.com"
 }
+
+resource "google_project_service" "run" {
+  disable_on_destroy = false
+  project            = var.project_id
+  service            = "run.googleapis.com"
+}

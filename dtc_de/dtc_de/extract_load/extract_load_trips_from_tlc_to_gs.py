@@ -1,9 +1,8 @@
 """
 Extract trips parquet files from TCL and load them to Google Cloud Storage
-
-This is intended to run in a virtual environment
 """
 
+import argparse
 import asyncio
 import datetime as dt
 import io
@@ -210,3 +209,14 @@ if (__name__ == "__main__") and __debug__:
         local_dest="/home/vagrant/courses/dtc-de-project/tmp",
         raise_if_any_not_found=False
     )
+elif __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--bucket-name", required=True)
+    parser.add_argument("--vehicle-type", required=True)
+    parser.add_argument("--year", default=None, type=int)
+    parser.add_argument("--month", default=None, type=int)
+    parser.add_argument("--raise-if-any-not-found", default=False, action="store_true")
+
+    args = vars(parser.parse_args())
+    print("Args:", args)
+    main(**args)

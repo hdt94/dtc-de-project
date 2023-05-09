@@ -66,6 +66,7 @@ export GCP_PROJECT_ID=
 export BQ_DATASET=trips
 export GCP_DBT_CREDENTIALS_FILE="$PWD/secrets/gcp_dbt_sa_credentials.json"
 export GCS_DATA_BUCKET_NAME="datalake-$GCP_PROJECT_ID"
+export GCP_REGION=us-central1
 export ORCHESTRATOR_GCP_CREDENTIALS_FILE="$PWD/secrets/orchestrator_gcp_sa_credentials.json"
 
 # enforcing local airflow, not provisioning Cloud Composer environment
@@ -74,18 +75,17 @@ export LOCAL_AIRFLOW=true
 
 Initialize cloud resources using Terraform:
 - script will generate a dbt BigQuery connection service account JSON file at `GCP_DBT_CREDENTIALS_FILE` location (see base variables)
+- script will generate a connection service account JSON file at `ORCHESTRATOR_GCP_CREDENTIALS_FILE` location (see base variables) only if `LOCAL_AIRFLOW=true`
+- script will generate an enviroment file `.env` with all relevant environment variables used in this repo. Any change to previous base environment variables requires re-running following script as these base variables are also written to environment file.
 ```bash
 gcloud config set project $GCP_PROJECT_ID
 RUN_ALL=true ./init-cloud-env.sh
 ```
 
-Generate environment variables file:
-- any change to previous base environment variables requires re-running following script as these base variables are also written to environment file.
-```bash
-./init-env-file.sh
-```
-
 ## Cloud
+
+Cloud Composer:
+- Follow instructions [orchestration/airflow/README.md](./orchestration/airflow/README.md)
 
 Cloud dbt:
 - Fork repository to your GitHub account: https://github.com/hdt94/dtc-de-project/fork
