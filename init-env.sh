@@ -164,6 +164,7 @@ AIRFLOW_HOME=/home/vagrant/airflow
 AIRFLOW__CORE__DAGS_FOLDER="${REPO_ROOT}/orchestration/airflow/local/dags"
 AIRFLOW__CORE__LOAD_EXAMPLES=False
 AIRFLOW__WEBSERVER__WORKERS=2
+AIRFLOW_VAR_CLOUD_BATCH_PARENT=$(jq -r .cloud_batch_parent.value <<< "$TERRAFORM_OUTPUT")
 AIRFLOW_VAR_CLOUD_RUN_JOBS_PARENT=$(jq -r .cloud_run_jobs_parent.value <<< "$TERRAFORM_OUTPUT")
 AIRFLOW_VAR_DATA_BUCKET_NAME=${GCS_DATA_BUCKET_NAME}
 

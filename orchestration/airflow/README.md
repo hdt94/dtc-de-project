@@ -56,3 +56,5 @@ Notes on environment variables:
 DAGs Execution isolation is implemented using Cloud Run Job deployed through a virtual environment Airflow operator requiring `google-cloud-run` package.
 
 TODO: validate why splitting steps into three different tasks raises error. Use single task DAG as a temporary solution.
+
+2023-05-18: added support for Cloud Batch, similar to Cloud Run Job

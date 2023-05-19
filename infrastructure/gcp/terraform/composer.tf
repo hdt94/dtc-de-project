@@ -13,6 +13,7 @@ module "composer" {
   region                = var.region
 
   env_variables = {
+    cloud_batch_parent    = local.cloud_batch_parent
     cloud_run_jobs_parent = local.cloud_run_jobs_parent
     data_bucket_name      = google_storage_bucket.data_lake_bucket.name
   }
